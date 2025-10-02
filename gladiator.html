@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gladiator Arena — Golden Cities Edition</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+.back-btn {
+  font-family: 'Cinzel', serif;   /* optional: Roman-style font */
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;                    /* text color */
+  background: linear-gradient(180deg, #d4af37, #b78c2c); /* gold gradient */
+  border: 2px solid #8b6f2f;      /* darker gold border */
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+  transition: transform 0.15s ease;
+}
+
+.back-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(180deg, #e6c46d, #cfa34d);
+}
+    /* ===== Golden UI theme ===== */
+    :root{
+      --paper:#fff8e1;
+      --ink:#2b2116;
+      --gold:#d4af37;
+      --deep-gold:#b78c2c;
+      --accent:#8b6f2f;
+      --shadow:rgba(0,0,0,0.25);
+      --good:#1f7a3a;
+      --bad:#b01717;
+      --crowd:#6b5634;
+
+      /* Arena theme (per city overrides) */
+      --sky:#ead49e;
+      --sandTop:#f2dfb4;
+      --sandMid:#e0c38a;
+      --sandLow:#c79f56;
+      --wall:#8b642f;
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0; padding:0; min-height:100vh; color:var(--ink);
+      body {
+  font-family: "Georgia", "Times New Roman", serif;
+
+}
+
+      background:
+        radial-gradient(1400px 600px at 50% 120%, #f7e6b8 0%, #e8c878 60%, #c8a24c 100%),
+        linear-gradient(180deg, #fff8e1, #f2de9c);
+    }
+
+    /* Header + ticker */
+    header{
+      position:relative;
+      text-align:center; padding:20px 12px; color:#fff;
+      background:
+        linear-gradient(180deg, #cfa34d, #8b642f),
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="200"><defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="%23b88a39"/><stop offset="1" stop-color="%23845f2a"/></linearGradient></defs><rect width="1600" height="200" fill="url(%23g)"/><g fill="%23e6c46d" opacity="0.35"><rect x="40" y="40" width="140" height="120" rx="8"/><rect x="220" y="40" width="140" height="120" rx="8"/><rect x="400" y="40" width="140" height="120" rx="8"/><rect x="580" y="40" width="140" height="120" rx="8"/><rect x="760" y="40" width="140" height="120" rx="8"/><rect x="940" y="40" width="140" height="120" rx="8"/><rect x="1120" y="40" width="140" height="120" rx="8"/><rect x="1300" y="40" width="140" height="120" rx="8"/></g></svg>') center/cover;
+      border-bottom:4px solid var(--gold);
+      box-shadow: 0 8px 24px var(--shadow) inset;
+    }
+    header h1{ margin:0; font-weight:900; letter-spacing:0.05em; text-shadow: 0 2px 8px rgba(0,0,0,0.35) }
+    header p{ margin:8px 0 0; opacity:0.95; text-shadow: 0 2px 6px rgba(0,0,0,0.35) }
+
+    .ticker{
+      position:sticky; top:0; z-index:50;
+      display:flex; gap:12px; align-items:center; justify-content:center;
+      padding:10px 12px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25));
+      color:#fff; backdrop-filter: blur(4px);
+      transform: translateY(-110%); opacity:0;
+    }
+    .ticker.show{ transform: translateY(0); opacity:1; transition: transform 220ms ease, opacity 220ms ease }
+    .script{
+      border:2px solid var(--gold); border-radius:12px; padding:8px 12px; background: rgba(255,255,255,0.12);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      font-weight:800; letter-spacing:0.02em;
+    }
+
+    /* Panels */
+    .container{ max-width:1200px; margin:20px auto; padding:12px }
+    .panel{
+      background:linear-gradient(180deg,#fff8e1,#f5e1a4);
+      border:6px double var(--gold);
+      border-radius:18px;
+      box-shadow: 0 12px 28px var(--shadow), inset 0 0 80px rgba(255,255,255,0.45);
+      overflow:hidden;
+    }
+
+    /* Selection */
+    .select-wrap{ display:grid; grid-template-columns: 2fr 1fr; gap:12px }
+    .select-header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px; background:linear-gradient(180deg,#f9efc8,#f0df98); border-bottom:1px solid #d3c197;
+    }
+    .filters{ display:flex; gap:8px; flex-wrap:wrap }
+    .input, .select{
+      padding:10px 12px; border:2px solid var(--gold); border-radius:10px; background:#fff; min-width:160px;
+      box-shadow: 0 3px 0 var(--deep-gold);
+    }
+    .grid{
+      display:grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap:10px; padding:12px; background:#fffdf7; border-top:1px solid #d3c197; max-height:520px; overflow:auto;
+    }
+    .card{
+      border:2px solid #d0bc8f; border-radius:12px; padding:10px; background:linear-gradient(#fff,#fff6db); cursor:pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+      display:grid; grid-template-columns: 64px 1fr; gap:8px; align-items:flex-start;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow:0 6px 14px var(--shadow) }
+    .card.selected{ border-color:var(--gold); box-shadow:0 0 0 2px var(--gold) inset }
+    .card .thumb{
+      width:64px; height:64px; border:2px solid var(--gold); border-radius:8px;
+      background:#fff;
+      background-size:cover; background-position:center;
+    }
+    .name{ font-weight:800; letter-spacing:0.02em }
+    .role{ font-size:12px; color:#6a5433 }
+    .stat{ font-size:12px; color:#3a2f1f }
+    .tag{ display:inline-block; font-size:12px; color:#6a5433; border:1px solid #ccb78a; padding:2px 6px; border-radius:999px; margin:3px 4px 0 0 }
+    .lore{ font-size:12px; color:#4a3a22; margin-top:6px }
+
+    .select-footer{
+      display:flex; justify-content:space-between; align-items:center; padding:12px; background:#fffaf0; border-top:1px solid #d3c197
+    }
+    .btn{
+      padding:12px 14px; border:2px solid var(--gold); border-radius:10px;
+      background:linear-gradient(180deg,#fff,#f7e7b8); color:#2b2116; font-weight:800; letter-spacing:0.04em; cursor:pointer;
+      box-shadow:0 4px 0 var(--deep-gold); transition: transform 80ms ease, box-shadow 80ms ease;
+    }
+    .btn:hover{ transform: translateY(-1px) }
+    .btn:active{ transform: translateY(2px); box-shadow:0 2px 0 var(--deep-gold) }
+    .btn.secondary{ border-color:#8b6f2f; box-shadow:0 4px 0 #8b6f2f }
+    .btn[disabled]{ opacity:0.6; cursor:not-allowed; transform:none }
+
+    .city-grid{
+      padding:12px; background:#fffdf7; border-left:1px solid #d3c197; max-height:634px; overflow:auto;
+      display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:10px;
+    }
+    .city-card{
+      background:linear-gradient(#fff,#fff5d6); border:2px solid #d0bc8f; border-radius:12px; overflow:hidden; cursor:pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+    }
+    .city-card:hover{ transform: translateY(-2px); box-shadow:0 6px 14px var(--shadow) }
+    .city-card.selected{ border-color:var(--gold); box-shadow:0 0 0 2px var(--gold) inset }
+    .city-banner{ height:90px; border-bottom:2px solid #d3c197; background-size:cover; background-position:center }
+    .city-content{ padding:10px }
+    .city-name{ font-weight:900; letter-spacing:0.03em }
+    .city-desc{ font-size:12px; color:#6a5433 }
+
+    /* Arena */
+    .arena{
+      display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:12px;
+      background:
+        linear-gradient(180deg, var(--sky) 0%, var(--sandTop) 45%, var(--sandMid) 45%, var(--sandLow) 100%);
+      border-top:1px solid #d3c197; border-bottom:1px solid #d3c197;
+      position:relative;
+    }
+    .fighter{
+      aspect-ratio: 1.6 / 1; border:2px dashed #cfb685; border-radius:12px; background:linear-gradient(#fffef7,#fff0cc);
+      display:flex; align-items:flex-end; justify-content:center; position:relative; overflow:hidden;
+    }
+    .sprite{ width:140px; height:180px; position:relative; transition: transform 180ms ease; background-size:contain; background-repeat:no-repeat; background-position:center bottom }
+    .effect{ position:absolute; inset:0; pointer-events:none }
+    .flash{ position:absolute; width:130px; height:6px; background:linear-gradient(90deg, transparent, #fff, transparent); transform: rotate(-18deg); opacity:0; animation: flash 420ms ease-out; filter: drop-shadow(0 0 8px #fff) }
+    @keyframes flash{ 0%{ opacity:0; transform: translate(-60px, 30px) rotate(-26deg) } 20%{ opacity:1 } 100%{ opacity:0; transform: translate(80px, -40px) rotate(-12deg) } }
+    .shake{ animation: shake 260ms ease }
+    @keyframes shake{ 0%,100% { transform: translateX(0) } 25%{ transform: translateX(-6px) } 50%{ transform: translateX(6px) } 75%{ transform: translateX(-4px) } }
+
+    /* HUD */
+    .hud{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:12px; background:linear-gradient(#fffef5,#fff2c2); border-top:1px solid #d3c197 }
+    .statline{ display:grid; grid-template-columns: 120px 1fr 60px; align-items:center; gap:8px; margin:6px 0 }
+    .label{ font-size:12px; color:#6a5433; font-weight:700 }
+    .bar{ width:100%; height:16px; border:1px solid #b7a77b; border-radius:8px; overflow:hidden; background:#efe7c8 }
+    .fill{ height:100%; background:linear-gradient(90deg,#8c1a1a,#d32d2d); width:100%; transition: width 280ms ease }
+    .bar.stamina .fill{ background:linear-gradient(90deg,#2a5934,#78a45f) }
+    .bar.morale .fill{ background:linear-gradient(90deg,#3a2f1f,#a9712e) }
+    .bar.guard .fill{ background:linear-gradient(90deg,#4f4f4f,#9c9c9c) }
+    .bar.crowd .fill{ background:linear-gradient(90deg,#b38600,#ffd24d) }
+
+    .controls{ display:flex; flex-wrap:wrap; gap:10px; padding:12px; background:linear-gradient(#fff,#fff5d6); border-top:1px solid #d3c197 }
+    .log{ max-height:240px; overflow:auto; padding:12px; background:#fffdf7; border-top:1px solid #d3c197; font-size:14px; line-height:1.5 }
+    .log p{ margin:6px 0 }
+    .good{ color:var(--good); font-weight:800 }
+    .bad{ color:var(--bad); font-weight:800 }
+    .crowd{ color:var(--crowd) }
+
+    .footer{ text-align:center; padding:10px; font-size:12px; color:#5b4a30; background:linear-gradient(#fffef7,#fff0cc) }
+    .hidden{ display:none }
+
+    /* ===== Sprites (SVG data URIs per role) ===== */
+    /* They share silhouette; each role has distinct helmet crest, shield, and weapon shapes/colors */
+.sprite.murmillo {
+  background-image: url("https://image2url.com/images/1759412447682-bebf4d37-d3fc-432d-831c-27f8a9f1d1f9.png");
+  background-size: cover;
+  background-position: center;
+}
+    .sprite.secutor {
+  background-image: url("https://image2url.com/images/1759411416160-0b35ce36-5879-4e1b-9594-628935f9fbfd.png");
+  background-size: cover;
+  background-position: center;
+width: 128px; 
+  height: 128px;  
+
+}
+    .sprite.thraex {
+  background-image: url("https://image2url.com/images/1759412215409-179ee446-4a6a-45e0-9719-74b57ac5b7d9.png");
+  background-size: cover;
+  background-position: center;
+}
+    .sprite.hoplomachus {
+  background-image: url("https://image2url.com/images/1759412572206-44a35569-bc7f-4f69-8f24-30ab5a62ecce.png");
+  background-size: cover;
+  background-position: center;
+
+}
+
+    .sprite.provocator {
+  background-image: url("https://image2url.com/images/1759412853274-cb2b798d-7fb2-41cf-b16d-fc5c5cfc17aa.png");
+  background-size: cover;
+  background-position: center;
+
+}
+
+    .sprite.dimachaerus {
+  background-image: url("https://image2url.com/images/1759413793981-c1dae763-efa7-434f-8107-94f6bc389296.png");
+  background-size: cover;
+  background-position: center;
+
+}
+
+    .sprite.retiarius{
+    background-image: url("https://image2url.com/images/1759413715034-34f21d86-0ff9-49e6-9dea-e397ae64b8d8.png");
+  background-size: cover;
+  background-position: down;
+
+}
+
+    .sprite.jerusalem{
+    background-image: url("https://image2url.com/images/1759413922404-4cddb899-a1e8-44c0-94c7-fc832501d290.png");
+  background-size: cover;
+  background-position: center;
+
+}
+
+
+    /* ===== City backgrounds (unique per map) ===== */
+    .arena.rome     { background-image: url('data:image/svg+xml;utf8,<svg xmlns="https://www.qantas.com/content/dam/travelinsider/images/explore/europe/italy/rome/things-to-do-see-monti-neighbourhood-ancient-rome-colosseum/rome-scenery-ruins-colosseum-italy.jpg" width="1600" height="600"><rect width="1600" height="600" fill="%23ead49e"/><g fill="%23cfb27a"><rect x="150" y="120" width="1300" height="120" rx="14"/><rect x="180" y="260" width="1240" height="110" rx="14"/></g><g fill="%23b88a39"><circle cx="240" cy="180" r="24"/><circle cx="360" cy="180" r="24"/><circle cx="480" cy="180" r="24"/><circle cx="600" cy="180" r="24"/><circle cx="720" cy="180" r="24"/><circle cx="840" cy="180" r="24"/><circle cx="960" cy="180" r="24"/><circle cx="1080" cy="180" r="24"/><circle cx="1200" cy="180" r="24"/></g></svg>'); background-size:cover; background-position:center; }
+    .arena.capua    { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23efd9a6"/><g fill="%23b78c2c"><rect x="120" y="320" width="80" height="160"/><rect x="280" y="320" width="80" height="160"/><rect x="440" y="320" width="80" height="160"/><rect x="600" y="320" width="80" height="160"/></g><g fill="%23a9712e"><rect x="140" y="260" width="40" height="60"/><rect x="300" y="260" width="40" height="60"/><rect x="460" y="260" width="40" height="60"/><rect x="620" y="260" width="40" height="60"/></g></svg>'); background-size:cover; background-position:center; }
+    .arena.pompeii  { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23e9d7a9"/><polygon points="1200,600 1400,200 1600,600" fill="%239c7f54"/><rect x="160" y="280" width="1280" height="120" rx="12" fill="%23cfa34d"/></svg>'); background-size:cover; background-position:center; }
+    .arena.verona   { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23ead9b0"/><g fill="%23b88a39"><rect x="220" y="180" width="1160" height="260" rx="22"/></g><g fill="%23cfb27a" opacity="0.6"><circle cx="300" cy="240" r="26"/><circle cx="420" cy="240" r="26"/><circle cx="540" cy="240" r="26"/><circle cx="660" cy="240" r="26"/><circle cx="780" cy="240" r="26"/></g></svg>'); background-size:cover; background-position:center; }
+    .arena.carthage { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23f2e1b8"/><g fill="%23e0c38a"><circle cx="1400" cy="140" r="60"/><rect x="160" y="280" width="1280" height="120" rx="12"/></g><g fill="%239c7f54"><rect x="120" y="340" width="100" height="80"/><rect x="240" y="340" width="100" height="80"/><rect x="360" y="340" width="100" height="80"/></g></svg>'); background-size:cover; background-position:center; }
+    .arena.alexandria{ background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23ead49e"/><rect x="0" y="360" width="1600" height="240" fill="%23c79f56"/><g fill="%239c7f54"><rect x="200" y="160" width="60" height="200"/><rect x="230" y="140" width="20" height="20"/></g><g fill="%23b88a39" opacity="0.6"><rect x="380" y="180" width="140" height="80"/><rect x="560" y="180" width="140" height="80"/></g></svg>'); background-size:cover; background-position:center; }
+    .arena.antioch  { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23efd9a6"/><g fill="%23b88a39"><circle cx="240" cy="220" r="60"/><circle cx="460" cy="220" r="60"/></g><rect x="160" y="320" width="1280" height="120" rx="12" fill="%23cfb27a"/></svg>'); background-size:cover; background-position:center; }
+    .arena.ephesus  { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23f1e3bd"/><g fill="%23b88a39"><rect x="200" y="140" width="40" height="240"/><rect x="340" y="140" width="40" height="240"/><rect x="480" y="140" width="40" height="240"/><rect x="620" y="140" width="40" height="240"/></g><rect x="160" y="120" width="560" height="32" fill="%23cfb27a"/></svg>'); background-size:cover; background-position:center; }
+    .arena.syracuse { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23ead9b0"/><path d="M0,480 C300,420 800,520 1600,440 L1600,600 L0,600 Z" fill="%239c7f54"/><rect x="160" y="280" width="1280" height="120" rx="12" fill="%23cfb27a"/></svg>'); background-size:cover; background-position:center; }
+    .arena.constantinopolis{ background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600"><rect width="1600" height="600" fill="%23f2de9c"/><g fill="%23b88a39"><circle cx="280" cy="220" r="50"/><rect x="260" y="270" width="40" height="90"/><circle cx="460" cy="220" r="50"/><rect x="440" y="270" width="40" height="90"/></g><rect x="160" y="340" width="1280" height="120" rx="12" fill="%23cfb27a"/></svg>'); background-size:cover; background-position:center; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🏛️ Gladiator Arena</h1>
+    <p>This is where you will fight to the death. Should you emerge victorious, or shall death as a gladiator be your end? It is all in your hands...</p>
+    <div id="ticker" class="ticker"></div>
+    <button class="back-btn" onclick="goBack()">⬅ Back</button>
+  </header>
+
+  <div class="container">
+    <!-- Selection -->
+    <div id="selectPanel" class="panel">
+      <div class="select-header">
+        <div class="filters">
+          <input id="searchInput" class="input" placeholder="Search name, role, weapon..." />
+          <select id="roleFilter" class="select">
+            <option value="">All roles</option>
+            <option value="Murmillo">Murmillo</option>
+            <option value="Retiarius">Retiarius</option>
+            <option value="Thraex">Thraex</option>
+            <option value="Secutor">Secutor</option>
+            <option value="Hoplomachus">Hoplomachus</option>
+            <option value="Provocator">Provocator</option>
+            <option value="Dimachaerus">Dimachaerus</option>
+          </select>
+          <select id="weaponFilter" class="select">
+            <option value="">All weapons</option>
+            <option value="Gladius">Gladius</option>
+            <option value="Trident">Trident</option>
+            <option value="Spear">Spear</option>
+            <option value="Scimitar">Scimitar</option>
+            <option value="Dual Swords">Dual Swords</option>
+            <option value="Net">Net</option>
+            <option value="Shield">Shield</option>
+          </select>
+          <button id="randomBtn" class="btn secondary">Randomize roster</button>
+        </div>
+        <div>
+          <button id="pickAiBtn" class="btn secondary">Pick AI opponent</button>
+          <button id="startBtn" class="btn" disabled>Enter the arena</button>
+        </div>
+      </div>
+
+      <div class="select-wrap">
+        <div>
+          <div id="grid" class="grid"></div>
+          <div class="select-footer">
+            <div style="display:flex; gap:12px; flex-wrap:wrap">
+              <div class="btn secondary" id="balanceBtn">Balance matchup</div>
+              <div class="btn secondary" id="mirrorBtn">Mirror role</div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+              <div><strong>Selected:</strong> <span id="summaryMe"></span></div>
+              <div><strong>Opponent:</strong> <span id="summaryAi"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- City + difficulty -->
+        <div>
+          <div class="select-header" style="border-top:1px solid #d3c197">
+            <strong>Choose city (difficulty):</strong>
+            <select id="cityFilter" class="select">
+              <option value="">All regions</option>
+              <option>Italia</option>
+              <option>Africa</option>
+              <option>Orient</option>
+            </select>
+          </div>
+          <div id="cityGrid" class="city-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arena -->
+    <div id="arenaPanel" class="panel hidden">
+      <div class="arena" id="arenaBg">
+        <div class="fighter" id="playerBox">
+          <div class="sprite" id="playerSprite"></div>
+          <div class="effect" id="playerEffect"></div>
+        </div>
+        <div class="fighter" id="enemyBox">
+          <div class="sprite" id="enemySprite"></div>
+          <div class="effect" id="enemyEffect"></div>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div>
+          <div class="statline">
+            <div class="label">Health</div>
+            <div class="bar"><div id="hpP" class="fill"></div></div>
+            <div id="hpPVal" class="label"></div>
+          </div>
+          <div class="statline">
+            <div class="label">Stamina</div>
+            <div class="bar stamina"><div id="stP" class="fill"></div></div>
+            <div id="stPVal" class="label"></div>
+          </div>
+          <div class="statline">
+            <div class="label">Morale</div>
+            <div class="bar morale"><div id="moP" class="fill"></div></div>
+            <div id="moPVal" class="label"></div>
+          </div>
+          <div class="statline">
+            <div class="label">Guard</div>
+            <div class="bar guard"><div id="gdP" class="fill"></div></div>
+            <div id="gdPVal" class="label"></div>
+          </div>
+          <div class="statline">
+            <div class="label">Crowd favor</div>
+            <div class="bar crowd"><div id="cfP" class="fill"></div></div>
+            <div id="cfPVal" class="label"></div>
+          </div>
+        </div>
+        <div>
+          <div class="statline">
+            <div class="label">Health</div>
+            <div class="bar"><div id="hpE" class="fill"></div></div>
+            <div id="hpEVal" class="label"></div>
+          </div>
+          <div class="statline">
+            <div class="label">Stamina</div>
+            <div class="bar stamina"><div id="stE" class="fill"></div></div>
+            <div id="stEVal" class="label"></div>
+          </div>
+          <div class="statline">
+            <div class="label">Morale</div>
+            <div class="bar morale"><div id="moE" class="fill"></div></div>
+            <div id="moEVal" class="label"></div>
+          </div>
+          <div class="statline">
+            <div class="label">Guard</div>
+            <div class="bar guard"><div id="gdE" class="fill"></div></div>
+            <div id="gdEVal" class="label"></div>
+          </div>
+          <div class="statline">
+            <div class="label">Crowd favor</div>
+            <div class="bar crowd"><div id="cfE" class="fill"></div></div>
+            <div id="cfEVal" class="label"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="btnAttack">Attack</button>
+        <button class="btn" id="btnGuard">Guard</button>
+        <button class="btn" id="btnFeint">Feint</button>
+        <button class="btn" id="btnFootwork">Footwork</button>
+        <button class="btn" id="btnGrapple">Grapple</button>
+        <button class="btn secondary" id="btnRecover">Recover</button>
+        <button class="btn secondary" id="btnSpecial">Special (salvo)</button>
+      </div>
+
+      <div class="log" id="log">
+        <p class="crowd">The horn sounds. Sand shifts underfoot. Measure distance and win the crowd.</p>
+      </div>
+
+      <div class="footer">
+        Tips: Stylish feints and clean hits raise crowd favor. Spend favor on Special to swing momentum. Cities change AI style and arena mood.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== CITY & DIFFICULTY ======
+    const cities = [
+      { id:1, key:'rome', name:"Rome", region:"Italia", diff:1, ai:{agg:0.9, caution:0.6, feint:0.6, grapple:0.5, range:0.5, adapt:0.5}, theme:{ sky:"#ead49e", sandTop:"#f2dfb4", sandMid:"#e0c38a", sandLow:"#c79f56", wall:"#8b642f" }, desc:"Classic amphitheater—balanced opponent." },
+      { id:2, key:'capua', name:"Capua", region:"Italia", diff:2, ai:{agg:1.0, caution:0.5, feint:0.5, grapple:0.6, range:0.5, adapt:0.55}, theme:{ sky:"#efd9a6", sandTop:"#f2e2bb", sandMid:"#deb87a", sandLow:"#c39446", wall:"#805b2a" }, desc:"Training ground of legends—slightly aggressive." },
+      { id:3, key:'pompeii', name:"Pompeii", region:"Italia", diff:3, ai:{agg:0.95, caution:0.65, feint:0.7, grapple:0.55, range:0.55, adapt:0.6}, theme:{ sky:"#e9d7a9", sandTop:"#ecd3a1", sandMid:"#d2b57a", sandLow:"#b58e47", wall:"#7a5427" }, desc:"Crowd loves feints; AI reads guards." },
+      { id:4, key:'verona', name:"Verona", region:"Italia", diff:4, ai:{agg:0.9, caution:0.75, feint:0.65, grapple:0.6, range:0.6, adapt:0.65}, theme:{ sky:"#ead9b0", sandTop:"#e0c695", sandMid:"#cfae71", sandLow:"#ad8948", wall:"#754f25" }, desc:"Measured duels—patient, counter-focused." },
+      { id:5, key:'carthage', name:"Carthage", region:"Africa", diff:5, ai:{agg:1.1, caution:0.7, feint:0.75, grapple:0.65, range:0.6, adapt:0.7}, theme:{ sky:"#f2e1b8", sandTop:"#e8d19a", sandMid:"#d5b777", sandLow:"#b8934a", wall:"#6f4a23" }, desc:"Pressing style—mix feints with lunges." },
+      { id:6, key:'alexandria', name:"Alexandria", region:"Orient", diff:6, ai:{agg:1.0, caution:0.8, feint:0.85, grapple:0.6, range:0.7, adapt:0.75}, theme:{ sky:"#ead49e", sandTop:"#e3c88f", sandMid:"#d2af6b", sandLow:"#b08941", wall:"#684320" }, desc:"Technical—smart range control and feints." },
+      { id:7, key:'antioch', name:"Antioch", region:"Orient", diff:7, ai:{agg:1.05, caution:0.85, feint:0.9, grapple:0.65, range:0.75, adapt:0.8}, theme:{ sky:"#efd9a6", sandTop:"#debe82", sandMid:"#cfa566", sandLow:"#a57f3e", wall:"#5f3d1c" }, desc:"High guard discipline—punishes risk." },
+      { id:8, key:'ephesus', name:"Ephesus", region:"Orient", diff:8, ai:{agg:1.1, caution:0.9, feint:0.95, grapple:0.7, range:0.8, adapt:0.85}, theme:{ sky:"#f1e3bd", sandTop:"#d9b875", sandMid:"#c49f59", sandLow:"#9c7534", wall:"#563616" }, desc:"Tactician—reads and adapts quickly." },
+      { id:9, key:'syracuse', name:"Syracuse", region:"Italia", diff:9, ai:{agg:1.15, caution:0.95, feint:1.0, grapple:0.75, range:0.85, adapt:0.9}, theme:{ sky:"#ead9b0", sandTop:"#d3b26b", sandMid:"#bd984f", sandLow:"#946f2d", wall:"#4d2f13" }, desc:"Masterful timing—baits and counters ruthlessly." },
+      { id:10, key:'constantinopolis', name:"Constantinopolis", region:"Orient", diff:10, ai:{agg:1.2, caution:1.0, feint:1.05, grapple:0.8, range:0.9, adapt:1.0}, theme:{ sky:"#f2de9c", sandTop:"#cca763", sandMid:"#b48e47", sandLow:"#8e682b", wall:"#432612" }, desc:"Elite—shifts range, feints, and punishes perfectly." }
+    ];
+
+    // ====== ROSTER ======
+    const archetypes = [
+      { role:"Murmillo", spriteClass:"murmillo", base:{ hp:34, st:14, mo:12, guard:8, reach:2 }, gear:["Gladius","Shield"], traits:["Heavy helm","Shield wall","Countercut"], lore:"A heavy infantryman of the arena, wading forward behind a wall of bronze." },
+      { role:"Hero of Jerusalem", spriteClass:"jerusalem", base:{ hp:50, st:25, mo:18, guard:18, reach:2 }, gear:["Sabre of Light","Shield of Heavens"], traits:["Slash of Skies","Wall of Clouds","Hair Flick"], lore:"A true hero. The one true savior of Jerusalem. He is truly a God worthy of Light." },
+      { role:"Retiarius", spriteClass:"retiarius", base:{ hp:28, st:16, mo:12, guard:4, reach:4 }, gear:["Trident","Net"], traits:["Net throw","Long reach","Circle step"], lore:"Light and elusive, a fisherman of men with net and trident." },
+      { role:"Thraex", spriteClass:"thraex", base:{ hp:30, st:15, mo:12, guard:7, reach:2 }, gear:["Scimitar","Shield"], traits:["Hook cuts","Aggressive","Low guard"], lore:"Born of Thracian style—hooking cuts and savage pressure." },
+      { role:"Secutor", spriteClass:"secutor", base:{ hp:32, st:14, mo:11, guard:8, reach:2 }, gear:["Gladius","Shield"], traits:["Chaser","Tight helm","Shield bash"], lore:"Pursuer—engineered to chase down the net-fighter and finish." },
+      { role:"Hoplomachus", spriteClass:"hoplomachus", base:{ hp:31, st:15, mo:12, guard:7, reach:3 }, gear:["Spear","Shield"], traits:["Spear thrust","Shield line","Brace"], lore:"Spear and shield—disciplined lines and precise thrusts." },
+      { role:"Provocator", spriteClass:"provocator", base:{ hp:33, st:14, mo:12, guard:9, reach:2 }, gear:["Gladius","Shield"], traits:["Chest plate","Duel stance","Guard break"], lore:"Duelist with chest armor—honor bound, relentless in close quarters." },
+      { role:"Dimachaerus", spriteClass:"dimachaerus", base:{ hp:29, st:17, mo:13, guard:5, reach:2 }, gear:["Dual Swords"], traits:["Twin strike","Unshielded","Flurry"], lore:"Twin blades and audacity—unshielded but unstoppable in flurries." }
+    ];
+    const namePools = [
+      "Aelius","Agrippa","Albus","Antonius","Appius","Aquilus","Augustus","Aurelius","Balbus","Brutus","Caius","Cassius","Cato","Cicero","Claudius","Cornelius","Decimus","Drusus","Fabian","Faustus","Flavius","Gaius","Germanicus","Hadrian","Ignatius","Iulius","Livius","Lucius","Macro","Magnus","Marcus","Marcellus","Nero","Octavian","Paullus","Pertinax","Plinius","Pompeius","Publius","Quintus","Remus","Rufus","Sabinus","Sergius","Severus","Tacitus","Tullius","Valens","Varro","Vespasian"
+    ];
+    const epithets = ["the Bold","the Red","Sand-Walker","Steel-Eye","the Fox","Ironhide","the Quick","Crow-Favor","the Lion","Stormborn","Bull","the Silent","Wolf","the Hawk","the Stalwart"];
+    function roll(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
+
+    function generateRoster(count=56){
+      const roster = [];
+      for(let i=0;i<count;i++){
+        const arch = archetypes[roll(0, archetypes.length-1)];
+        const name = `${namePools[roll(0, namePools.length-1)]} ${epithets[roll(0, epithets.length-1)]}`;
+        const variance = { hp: roll(-3,3), st: roll(-2,2), mo: roll(-2,2), guard: roll(-2,2), reach: roll(-1,1) };
+        const stats = {
+          maxHP: arch.base.hp + variance.hp,
+          maxSt: arch.base.st + variance.st,
+          maxMo: arch.base.mo + variance.mo,
+          guard: arch.base.guard + variance.guard,
+          reach: clamp(arch.base.reach + variance.reach, 1, 4)
+        };
+        roster.push({
+          id: i+1,
+          name,
+          role: arch.role,
+          spriteClass: arch.spriteClass,
+          weapon: arch.gear.join(" + "),
+          traits: arch.traits,
+          lore: arch.lore,
+          stats
+        });
+      }
+      return roster;
+    }
+
+    // ====== SELECTION UI ======
+    const uiSelect = {
+      grid: document.getElementById('grid'),
+      search: document.getElementById('searchInput'),
+      roleFilter: document.getElementById('roleFilter'),
+      weaponFilter: document.getElementById('weaponFilter'),
+      randomBtn: document.getElementById('randomBtn'),
+      pickAiBtn: document.getElementById('pickAiBtn'),
+      startBtn: document.getElementById('startBtn'),
+      summaryMe: document.getElementById('summaryMe'),
+      summaryAi: document.getElementById('summaryAi'),
+      panel: document.getElementById('selectPanel'),
+      cityGrid: document.getElementById('cityGrid'),
+      cityFilter: document.getElementById('cityFilter'),
+      balanceBtn: document.getElementById('balanceBtn'),
+      mirrorBtn: document.getElementById('mirrorBtn')
+    };
+    let roster = generateRoster(56);
+    let selectedMe = null, selectedAi = null, selectedCity = cities[0];
+
+    function thumbFor(role){
+      return `sprite ${role.toLowerCase()}`; // we will reuse role class to render a mini preview via same svg
+    }
+
+    function renderRoster(){
+      uiSelect.grid.innerHTML = "";
+      const q = uiSelect.search.value.trim().toLowerCase();
+      const r = uiSelect.roleFilter.value;
+      const w = uiSelect.weaponFilter.value;
+
+      roster.forEach(f=>{
+        const matchText = !q || (f.name.toLowerCase().includes(q) || f.role.toLowerCase().includes(q) || f.weapon.toLowerCase().includes(q));
+        const matchRole = !r || f.role === r;
+        const matchWeapon = !w || f.weapon.includes(w);
+        if(!(matchText && matchRole && matchWeapon)) return;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        if(selectedMe && selectedMe.id === f.id) card.classList.add('selected');
+
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb';
+        thumb.style.backgroundImage = getSpriteBG(f.spriteClass);
+
+        const info = document.createElement('div');
+        info.innerHTML = `
+          <div class="name">${f.name}</div>
+          <div class="role">${f.role} — ${f.weapon}</div>
+          <div class="stat">HP ${f.stats.maxHP} • ST ${f.stats.maxSt} • MO ${f.stats.maxMo} • Guard ${f.stats.guard} • Reach ${f.stats.reach}</div>
+          <div>${f.traits.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="lore">${f.lore}</div>
+        `;
+        card.appendChild(thumb);
+        card.appendChild(info);
+
+        card.addEventListener('click', ()=>{
+          selectedMe = structuredClone(f);
+          renderRoster(); renderSummary();
+          uiSelect.startBtn.disabled = !(selectedMe && selectedAi && selectedCity);
+        });
+        uiSelect.grid.appendChild(card);
+      });
+    }
+
+    function renderSummary(){
+      uiSelect.summaryMe.textContent = selectedMe ? `${selectedMe.name} (${selectedMe.role})` : `None`;
+      uiSelect.summaryAi.textContent = selectedAi ? `${selectedAi.name} (${selectedAi.role})` : `None`;
+      uiSelect.startBtn.disabled = !(selectedMe && selectedAi && selectedCity);
+    }
+
+    uiSelect.search.addEventListener('input', renderRoster);
+    uiSelect.roleFilter.addEventListener('change', renderRoster);
+    uiSelect.weaponFilter.addEventListener('change', renderRoster);
+    uiSelect.randomBtn.addEventListener('click', ()=>{
+      roster = generateRoster(56); renderRoster();
+    });
+    uiSelect.pickAiBtn.addEventListener('click', ()=>{
+      const candidates = [...roster].filter(f=> !selectedMe || f.id !== selectedMe.id);
+      selectedAi = structuredClone(candidates[roll(0, candidates.length-1)]);
+      renderSummary();
+    });
+    uiSelect.balanceBtn.addEventListener('click', ()=>{
+      if(!selectedMe) return;
+      const candidates = roster
+        .filter(f=> f.id !== selectedMe.id)
+        .map(f=> ({f, score: Math.abs(f.stats.maxHP - selectedMe.stats.maxHP) + Math.abs(f.stats.maxSt - selectedMe.stats.maxSt) + Math.abs(f.stats.maxMo - selectedMe.stats.maxMo) }));
+      candidates.sort((a,b)=> a.score - b.score);
+      selectedAi = structuredClone(candidates[0].f);
+      renderSummary();
+    });
+    uiSelect.mirrorBtn.addEventListener('click', ()=>{
+      if(!selectedMe) return;
+      const candidates = roster.filter(f=> f.id !== selectedMe.id && f.role === selectedMe.role);
+      selectedAi = structuredClone(candidates[roll(0, candidates.length-1)] || roster[roll(0, roster.length-1)]);
+      renderSummary();
+    });
+
+    function renderCities(){
+      uiSelect.cityGrid.innerHTML = "";
+      const region = uiSelect.cityFilter.value;
+      cities.forEach(c=>{
+        if(region && c.region !== region) return;
+        const card = document.createElement('div');
+        card.className = 'city-card' + (selectedCity && selectedCity.id===c.id ? ' selected':'');
+        const banner = document.createElement('div');
+        banner.className = 'city-banner';
+        banner.style.backgroundImage = 'none'; // city banner gradient
+        banner.style.background = `linear-gradient(180deg, ${c.theme.sky}, ${c.theme.sandTop})`;
+
+        const content = document.createElement('div');
+        content.className = 'city-content';
+        content.innerHTML = `
+          <div class="city-name">${c.name} — Difficulty ${c.diff}</div>
+          <div class="city-desc">${c.desc}</div>
+        `;
+        card.appendChild(banner);
+        card.appendChild(content);
+        card.addEventListener('click', ()=>{
+          selectedCity = c;
+          renderCities(); renderSummary();
+          uiSelect.startBtn.disabled = !(selectedMe && selectedAi && selectedCity);
+        });
+        uiSelect.cityGrid.appendChild(card);
+      });
+    }
+    uiSelect.cityFilter.addEventListener('change', renderCities);
+
+    renderRoster(); renderSummary(); renderCities();
+
+    // ====== TICKER ======
+    const tickerEl = document.getElementById('ticker');
+    let tickerTimer = null;
+    function pushScript(lines){
+      tickerEl.innerHTML = lines.map(txt=> `<div class="script">${txt}</div>`).join('');
+      tickerEl.classList.add('show');
+      if(tickerTimer) clearTimeout(tickerTimer);
+      tickerTimer = setTimeout(()=> tickerEl.classList.remove('show'), 5200);
+    }
+
+    // ====== ARENA UI ======
+    const uiArena = {
+      panel: document.getElementById('arenaPanel'),
+      arenaBg: document.getElementById('arenaBg'),
+      playerSprite: document.getElementById('playerSprite'),
+      enemySprite: document.getElementById('enemySprite'),
+      playerEffect: document.getElementById('playerEffect'),
+      enemyEffect: document.getElementById('enemyEffect'),
+      hpP: document.getElementById('hpP'), stP: document.getElementById('stP'), moP: document.getElementById('moP'), gdP: document.getElementById('gdP'), cfP: document.getElementById('cfP'),
+      hpE: document.getElementById('hpE'), stE: document.getElementById('stE'), moE: document.getElementById('moE'), gdE: document.getElementById('gdE'), cfE: document.getElementById('cfE'),
+      hpPVal: document.getElementById('hpPVal'), stPVal: document.getElementById('stPVal'), moPVal: document.getElementById('moPVal'), gdPVal: document.getElementById('gdPVal'), cfPVal: document.getElementById('cfPVal'),
+      hpEVal: document.getElementById('hpEVal'), stEVal: document.getElementById('stEVal'), moEVal: document.getElementById('moEVal'), gdEVal: document.getElementById('gdEVal'), cfEVal: document.getElementById('cfEVal'),
+      log: document.getElementById('log'),
+      btns: {
+        attack: document.getElementById('btnAttack'),
+        guard: document.getElementById('btnGuard'),
+        feint: document.getElementById('btnFeint'),
+        foot: document.getElementById('btnFootwork'),
+        grapple: document.getElementById('btnGrapple'),
+        recover: document.getElementById('btnRecover'),
+        special: document.getElementById('btnSpecial')
+      }
+    };
+
+    const game = {
+      over:false,
+      turn:'player',
+      distance:2,
+      me:null, ai:null,
+      city:null
+    };
+
+    function log(text, cls){
+      const p = document.createElement('p');
+      if(cls) p.className = cls;
+      p.textContent = text;
+      uiArena.log.appendChild(p);
+      uiArena.log.scrollTop = uiArena.log.scrollHeight;
+    }
+    function flash(target){
+      const e = document.createElement('div');
+      e.className = 'flash';
+      e.style.left = roll(40, 90) + 'px';
+      e.style.top = roll(40, 110) + 'px';
+      target.appendChild(e);
+      setTimeout(()=> e.remove(), 440);
+    }
+
+    function getSpriteBG(spriteClass){
+      // Returns a CSS 'url(...)' string pointing to the data URI background defined in CSS
+      // We map classes to the selector names used above.
+      const map = {
+        murmillo: getComputedStyle(document.documentElement).getPropertyValue('--dummy') || "url('data:image/svg+xml;utf8,<svg/>')",
+        retiarius: "url('data:image/svg+xml;utf8,<svg/>')" // placeholder (we’ll read actual CSS by creating a temp element)
+      };
+      // Instead, create temp element with class and read its background-image:
+      const tmp = document.createElement('div');
+      tmp.className = `sprite ${spriteClass}`;
+      document.body.appendChild(tmp);
+      const bg = getComputedStyle(tmp).backgroundImage;
+      document.body.removeChild(tmp);
+      return bg;
+    }
+
+    function setSprite(el, spriteClass){
+      el.className = `sprite ${spriteClass}`;
+      // No further action needed—CSS data URI provides the graphics
+    }
+
+    function applyCityTheme(city){
+      const root = document.documentElement.style;
+      root.setProperty('--sky', city.theme.sky);
+      root.setProperty('--sandTop', city.theme.sandTop);
+      root.setProperty('--sandMid', city.theme.sandMid);
+      root.setProperty('--sandLow', city.theme.sandLow);
+      root.setProperty('--wall', city.theme.wall);
+      uiArena.arenaBg.className = `arena ${city.key}`;
+    }
+
+    function initFighter(raw){
+      return {
+        name: raw.name, role: raw.role, spriteClass: raw.spriteClass, weapon: raw.weapon, traits: raw.traits,
+        maxHP: raw.stats.maxHP, hp: raw.stats.maxHP,
+        maxSt: raw.stats.maxSt, st: raw.stats.maxSt,
+        maxMo: raw.stats.maxMo, mo: raw.stats.maxMo,
+        guardCap: raw.stats.guard, guard: 0,
+        reach: raw.stats.reach,
+        wounded: 0,
+        crowd: 0,
+        pattern: []
+      };
+    }
+
+    function updateHUD(){
+      const m = game.me, e = game.ai;
+      const pct = (v,max)=> clamp(Math.round(v/max*100),0,100);
+      uiArena.hpP.style.width = pct(m.hp,m.maxHP)+'%';
+      uiArena.stP.style.width = pct(m.st,m.maxSt)+'%';
+      uiArena.moP.style.width = pct(m.mo,m.maxMo)+'%';
+      uiArena.gdP.style.width = pct(m.guard,m.guardCap)+'%';
+      uiArena.cfP.style.width = clamp(m.crowd,0,100)+'%';
+      uiArena.hpE.style.width = pct(e.hp,e.maxHP)+'%';
+      uiArena.stE.style.width = pct(e.st,e.maxSt)+'%';
+      uiArena.moE.style.width = pct(e.mo,e.maxMo)+'%';
+      uiArena.gdE.style.width = pct(e.guard,e.guardCap)+'%';
+      uiArena.cfE.style.width = clamp(e.crowd,0,100)+'%';
+
+      uiArena.hpPVal.textContent = `${m.hp}/${m.maxHP}`;
+      uiArena.stPVal.textContent = `${m.st}/${m.maxSt}`;
+      uiArena.moPVal.textContent = `${m.mo}/${m.maxMo}`;
+      uiArena.gdPVal.textContent = `${m.guard}/${m.guardCap}`;
+      uiArena.cfPVal.textContent = `${Math.round(m.crowd)}`;
+      uiArena.hpEVal.textContent = `${e.hp}/${e.maxHP}`;
+      uiArena.stEVal.textContent = `${e.st}/${e.maxSt}`;
+      uiArena.moEVal.textContent = `${e.mo}/${e.maxMo}`;
+      uiArena.gdEVal.textContent = `${e.guard}/${e.guardCap}`;
+      uiArena.cfEVal.textContent = `${Math.round(e.crowd)}`;
+    }
+    function disableAll(dis=true){ Object.values(uiArena.btns).forEach(b=> b.disabled = dis); }
+    function animateStrike(attackerEl, defenderEl, attackerEffect){
+      attackerEl.style.transform = 'translateX(8px)';
+      setTimeout(()=> attackerEl.style.transform='translateX(0)', 160);
+      flash(attackerEffect);
+      defenderEl.classList.add('shake'); setTimeout(()=> defenderEl.classList.remove('shake'), 280);
+    }
+
+    function startBattle(){
+      uiSelect.panel.classList.add('hidden');
+      uiArena.panel.classList.remove('hidden');
+
+      game.city = selectedCity;
+      applyCityTheme(game.city);
+
+      game.me = initFighter(selectedMe);
+      game.ai = initFighter(selectedAi);
+
+      setSprite(uiArena.playerSprite, game.me.spriteClass.toLowerCase());
+      setSprite(uiArena.enemySprite, game.ai.spriteClass.toLowerCase());
+
+      updateHUD();
+      log(`City: ${game.city.name}. Difficulty ${game.city.diff}. Fight clean and win the crowd.`, "crowd");
+      pushScript([`${game.me.name}: “Fortune favors the bold.”`, `${game.ai.name}: “Steel speaks.”`]);
+      disableAll(false);
+      updateButtons();
+    }
+    document.getElementById('startBtn').addEventListener('click', startBattle);
+
+    // ====== FUN MECHANICS ======
+    function baseHitChance(attacker, defender, action){
+      let chance = 50;
+      if(game.distance===3) chance += (attacker.reach>=3? +12 : -18);
+      if(game.distance===1) chance += (attacker.reach<=2? +10 : -12);
+      if(action==='attack') chance += 8;
+      if(action==='feint') chance += 4;
+      if(action==='grapple') chance += (game.distance===1 ? 12 : -25);
+      if(action==='special') chance += 16;
+      chance += (defender.guard>0 ? -15 : 0);
+      if(attacker.st < attacker.maxSt*0.3) chance -= 8;
+      if(attacker.mo > attacker.maxMo*0.7) chance += 6;
+      if(attacker.role==='Retiarius' || attacker.role==='Dimachaerus') chance += 4;
+      if(attacker===game.ai){ chance += Math.round(6 * game.city.ai.adapt); }
+      return clamp(chance, 10, 92);
+    }
+
+    function damageCalc(attacker, defender, action){
+      let base = 0;
+      const w = attacker.weapon;
+      if(w.includes('Trident') || w.includes('Spear')) base = roll(5,8);
+      else if(w.includes('Dual') || w.includes('Scimitar')) base = roll(4,7);
+      else base = roll(4,6);
+      if(action==='feint') base = Math.max(2, base-2);
+      if(action==='grapple') base = roll(2,4);
+      if(action==='special') base += 3;
+      const crit = (attacker.st < attacker.maxSt*0.3 && attacker.mo > attacker.maxMo*0.7 && roll(1,100)<=18);
+      if(crit) base += roll(3,5);
+      const guardAbsorb = Math.min(defender.guard, Math.ceil(base*0.7));
+      const final = Math.max(1, base - guardAbsorb);
+      return { final, guardAbsorb, crit };
+    }
+
+    function applyWound(fighter, amount){
+      fighter.hp = clamp(fighter.hp - amount, 0, fighter.maxHP);
+      fighter.wounded += Math.floor(amount>=6 ? 2 : 1);
+      fighter.wounded = clamp(fighter.wounded, 0, 6);
+      if(amount>=6) fighter.mo = clamp(fighter.mo - 2, 0, fighter.maxMo);
+    }
+
+    function endOfTurnRecovery(){
+      const regen = (f)=> {
+        const base = 2;
+        const fatigue = (f.st < f.maxSt*0.3) ? -1 : 0;
+        const woundPenalty = (f.wounded>=5 ? -1 : f.wounded>=3 ? 0 : +1);
+        f.st = clamp(f.st + base + fatigue + woundPenalty, 0, f.maxSt);
+        f.guard = clamp(f.guard - 3, 0, f.guardCap);
+        f.mo = clamp(f.mo + (f.crowd>70? 1 : 0), 0, f.maxMo);
+      };
+      regen(game.me); regen(game.ai);
+    }
+
+    function distanceShift(delta){
+      game.distance = clamp(game.distance + delta, 1, 3);
+      log(delta<0 ? "You press the range." : "You create space.", "crowd");
+    }
+
+    function updateButtons(){
+      const m = game.me;
+      uiArena.btns.attack.disabled  = game.over || game.turn!=='player' || m.st < 4;
+      uiArena.btns.guard.disabled   = game.over || game.turn!=='player' || m.guard >= m.guardCap;
+      uiArena.btns.feint.disabled   = game.over || game.turn!=='player' || m.st < 3;
+      uiArena.btns.foot.disabled    = game.over || game.turn!=='player' || m.st < 2;
+      uiArena.btns.grapple.disabled = game.over || game.turn!=='player' || game.distance!==1 || m.st < 5;
+      uiArena.btns.recover.disabled = game.over || game.turn!=='player' || (m.st >= m.maxSt && m.mo >= m.maxMo);
+      uiArena.btns.special.disabled = game.over || game.turn!=='player' || m.crowd < 50;
+    }
+
+    function guardRiposte(defender, attacker){
+      if(defender.guard>0 && roll(1,100)<=25){
+        const dmg = roll(1,3);
+        applyWound(attacker, dmg);
+        log((defender===game.me?'Your':'Opponent’s')+" shield riposte scores ("+dmg+").", defender===game.me?'good':'bad');
+      }
+    }
+
+    function addCrowd(attacker, kind){
+      const gains = { hit:6, clean:9, feint:10, crit:12, special:16, miss:0 };
+      attacker.crowd = clamp(attacker.crowd + (gains[kind]||0), 0, 100);
+    }
+
+    // ====== RESOLVE ACTION ======
+    function resolveAction(attacker, defender, action, who='player'){
+      const cost = { attack:4, guard:0, feint:3, footwork:2, grapple:5, recover:0, special:0 }[action];
+      attacker.st = clamp(attacker.st - cost, 0, attacker.maxSt);
+      attacker.pattern.push(action); if(attacker.pattern.length>4) attacker.pattern.shift();
+
+      const verb = { attack:"attack", guard:"guard", feint:"feint", footwork:"footwork", grapple:"grapple", recover:"recover", special:"special salvo" }[action];
+      const whoName = attacker.name.split(' ')[0];
+      const defName = defender.name.split(' ')[0];
+      pushScript([`${whoName} → ${verb}`, `${defName} prepares to respond`]);
+
+      if(action==='guard'){
+        const gain = clamp(3 + (attacker.role.includes('Provocator') ? 2 : 0), 0, 7);
+        attacker.guard = clamp(attacker.guard + gain, 0, attacker.guardCap);
+        log((who==='player'?'You':'Opponent')+" raise guard.", "crowd");
+        return;
+      }
+      if(action==='footwork'){
+        const shift = attacker.reach >= 3 ? +1 : -1;
+        distanceShift(shift);
+        log((who==='player'?'You':'Opponent')+" adjust footing to set range.", "crowd");
+        return;
+      }
+      if(action==='recover'){
+        const stGain = roll(3,5), moGain = roll(1,2);
+        attacker.st = clamp(attacker.st + stGain, 0, attacker.maxSt);
+        attacker.mo = clamp(attacker.mo + moGain, 0, attacker.maxMo);
+        log((who==='player'?'You':'Opponent')+" take a breath to recover.", "crowd");
+        return;
+      }
+      if(action==='special'){
+        if(attacker.crowd < 50){ log((who==='player'?'You':'Opponent')+" lack favor for a Special.", "crowd"); return; }
+        attacker.crowd -= 50;
+        const chance = baseHitChance(attacker, defender, action) + 10;
+        const hits = 2 + (roll(0,1));
+        let total = 0;
+        for(let i=0;i<hits;i++){
+          const rollHit = roll(1,100) <= chance;
+          if(rollHit){
+            const { final } = damageCalc(attacker, defender, 'attack');
+            total += final;
+          }
+        }
+        if(total>0){
+          applyWound(defender, total);
+          addCrowd(attacker, 'special');
+          log((who==='player'?'Your':'Opponent’s')+" Special salvo lands ("+total+").", who==='player'?'good':'bad');
+          animateStrike(who==='player'?uiArena.playerSprite:uiArena.enemySprite, who==='player'?uiArena.enemySprite:uiArena.playerSprite, who==='player'?uiArena.playerEffect:uiArena.enemyEffect);
+        } else {
+          log((who==='player'?'Your':'Opponent’s')+" Special is stifled.", "crowd");
+        }
+        return;
+      }
+
+      const chance = baseHitChance(attacker, defender, action);
+      const rollHit = roll(1,100) <= chance;
+
+      if(action==='grapple'){
+        if(rollHit){
+          const { final } = damageCalc(attacker, defender, action);
+          applyWound(defender, final);
+          defender.guard = clamp(defender.guard - (2+roll(0,1)), 0, defender.guardCap);
+          defender.mo = clamp(defender.mo - 2, 0, defender.maxMo);
+          addCrowd(attacker, 'hit');
+          log((who==='player'?'You':'Opponent')+" clinch and wear down guard ("+final+").", who==='player'?'good':'bad');
+          animateStrike(who==='player'?uiArena.playerSprite:uiArena.enemySprite, who==='player'?uiArena.enemySprite:uiArena.playerSprite, who==='player'?uiArena.playerEffect:uiArena.enemyEffect);
+        } else {
+          log((who==='player'?'You':'Opponent')+" try to tie up but slip away.", "crowd");
+          guardRiposte(defender, attacker);
+        }
+        return;
+      }
+
+      if(action==='feint'){
+        if(rollHit){
+          const { final, crit } = damageCalc(attacker, defender, action);
+          applyWound(defender, final);
+          defender.mo = clamp(defender.mo - 3, 0, defender.maxMo);
+          addCrowd(attacker, 'feint'); if(crit) addCrowd(attacker, 'crit');
+          log((who==='player'?'You':'Opponent')+" feint draws guard then lands ("+final+").", who==='player'?'good':'bad');
+          animateStrike(who==='player'?uiArena.playerSprite:uiArena.enemySprite, who==='player'?uiArena.enemySprite:uiArena.playerSprite, who==='player'?uiArena.playerEffect:uiArena.enemyEffect);
+        } else {
+          log((who==='player'?'Your':'Opponent’s')+" feint is read and parried.", "crowd");
+          guardRiposte(defender, attacker);
+        }
+        return;
+      }
+
+      if(rollHit){
+        const { final, guardAbsorb, crit } = damageCalc(attacker, defender, action);
+        applyWound(defender, final);
+        addCrowd(attacker, guardAbsorb>0 ? 'hit' : 'clean'); if(crit) addCrowd(attacker, 'crit');
+        const msg = guardAbsorb>0
+          ? ((who==='player')?"You strike past guard ":"Opponent strikes past your guard ")+"("+final+" through)."
+          : ((who==='player')?"You":"Opponent")+" land a clean hit ("+final+").";
+        log(msg, who==='player'?'good':'bad');
+        animateStrike(who==='player'?uiArena.playerSprite:uiArena.enemySprite, who==='player'?uiArena.enemySprite:uiArena.playerSprite, who==='player'?uiArena.playerEffect:uiArena.enemyEffect);
+      } else {
+        log((who==='player'?'Your':'Opponent’s')+" attack misses in the shuffle.", "crowd");
+        guardRiposte(defender, attacker);
+      }
+    }
+
+    function checkEnd(){
+      if(game.me.hp<=0 || game.ai.hp<=0){
+        game.over = true; disableAll(true);
+        if(game.me.hp>0 && game.ai.hp<=0) log("Victory. The crowd rises as you salute the editor.", "good");
+        else if(game.ai.hp>0 && game.me.hp<=0) log("Defeat. You yield and the bout ends.", "bad");
+        else log("Both fighters can’t continue. The bout is called.", "crowd");
+        const restart = document.createElement('button');
+        restart.className='btn'; restart.textContent='Fight again';
+        restart.onclick = ()=> location.reload();
+        const wrap=document.createElement('div'); wrap.style.padding='10px'; wrap.appendChild(restart);
+        uiArena.log.appendChild(wrap);
+        return true;
+      }
+      return false;
+    }
+
+    function nextTurn(){
+      updateHUD();
+      if(checkEnd()) return;
+
+      endOfTurnRecovery();
+      updateHUD();
+
+      game.turn = (game.turn==='player') ? 'ai' : 'player';
+
+      if(game.turn==='ai' && !game.over){
+        disableAll(true);
+        setTimeout(()=>{
+          const action = aiChoose();
+          resolveAction(game.ai, game.me, action, 'ai');
+          updateHUD();
+          if(!checkEnd()){
+            game.turn='player';
+            disableAll(false); updateButtons();
+          }
+        }, 650);
+      } else {
+        disableAll(false); updateButtons();
+      }
+    }
+
+    // ====== SMARTER AI ======
+    function aiChoose(){
+      const a = game.ai, p = game.me, style = game.city.ai;
+
+      function scoreAttack(){
+        let s = 0;
+        s += (p.guard< p.guardCap*0.4) ? 10 : (p.guard< p.guardCap*0.7) ? 4 : -6;
+        s += (game.distance===3 && a.reach>=3) ? 8 : 0;
+        s += (game.distance===1 && a.reach<=2) ? 6 : 0;
+        s += (a.st>=4? 6 : -12);
+        if(p.pattern.slice(-2).every(x=> x==='guard')) s += 6;
+        if(p.pattern.slice(-2).every(x=> x==='recover')) s += 8;
+        return s*style.agg;
+      }
+      function scoreFeint(){
+        let s = 0;
+        s += (p.guard> p.guardCap*0.6) ? 12 : 0;
+        s += (p.pattern.includes('attack')) ? 4 : 0;
+        s += (a.st>=3? 4 : -8);
+        return s*style.feint;
+      }
+      function scoreGrapple(){
+        let s = 0;
+        s += (game.distance===1? 10 : -20);
+        s += (a.st>=5? 6 : -10);
+        s += (p.reach>a.reach? 6 : 0);
+        return s*style.grapple;
+      }
+      function scoreGuard(){
+        let s = 0;
+        s += (a.guard< a.guardCap*0.5 ? 8 : -6);
+        s += (p.st>=4 ? 4 : 0);
+        return s*style.caution;
+      }
+      function scoreFootwork(){
+        let s = 0;
+        s += (a.reach>=3 && game.distance!==3) ? 10 : 0;
+        s += (a.reach<=2 && game.distance!==1) ? 8 : 0;
+        s += (a.st>=2? 4 : -8);
+        return s*style.range;
+      }
+      function scoreRecover(){
+        let s = 0;
+        s += (a.st<4? 12 : -8);
+        s += (a.mo< a.maxMo*0.4 ? 8 : 0);
+        return s*style.caution;
+      }
+      function scoreSpecial(){
+        let s = 0;
+        s += (a.crowd>=50? 12 : -50);
+        s += (p.hp< p.maxHP*0.5 ? 6 : 0);
+        return s*(style.agg+style.feint)/2;
+      }
+
+      const options = [
+        { act:'attack',   score:scoreAttack() },
+        { act:'feint',    score:scoreFeint() },
+        { act:'grapple',  score:scoreGrapple() },
+        { act:'guard',    score:scoreGuard() },
+        { act:'footwork', score:scoreFootwork() },
+        { act:'recover',  score:scoreRecover() },
+        { act:'special',  score:scoreSpecial() }
+      ].filter(o=>{
+        if(o.act==='attack' && a.st<4) return false;
+        if(o.act==='feint' && a.st<3) return false;
+        if(o.act==='grapple' && (game.distance!==1 || a.st<5)) return false;
+        if(o.act==='footwork' && a.st<2) return false;
+        if(o.act==='special' && a.crowd<50) return false;
+        return true;
+      });
+
+      options.sort((x,y)=> y.score - x.score);
+      const top = options[0]?.act || 'recover';
+
+      const wobble = Math.max(0, 12 - game.city.diff);
+      if(options.length>1 && roll(1,100)<=wobble){
+        return options[roll(0, Math.min(2, options.length-1))].act;
+      }
+      return top;
+    }
+
+    // ====== CONTROLS ======
+    uiArena.btns.attack.addEventListener('click', ()=>{
+      if(game.over || game.turn!=='player') return;
+      resolveAction(game.me, game.ai, 'attack', 'player');
+      nextTurn();
+    });
+    uiArena.btns.guard.addEventListener('click', ()=>{
+      if(game.over || game.turn!=='player') return;
+      resolveAction(game.me, game.ai, 'guard', 'player');
+      nextTurn();
+    });
+    uiArena.btns.feint.addEventListener('click', ()=>{
+      if(game.over || game.turn!=='player') return;
+      resolveAction(game.me, game.ai, 'feint', 'player');
+      nextTurn();
+    });
+    uiArena.btns.foot.addEventListener('click', ()=>{
+      if(game.over || game.turn!=='player') return;
+      resolveAction(game.me, game.ai, 'footwork', 'player');
+      nextTurn();
+    });
+    uiArena.btns.grapple.addEventListener('click', ()=>{
+      if(game.over || game.turn!=='player') return;
+      resolveAction(game.me, game.ai, 'grapple', 'player');
+      nextTurn();
+    });
+    uiArena.btns.recover.addEventListener('click', ()=>{
+      if(game.over || game.turn!=='player') return;
+      resolveAction(game.me, game.ai, 'recover', 'player');
+      nextTurn();
+    });
+    uiArena.btns.special.addEventListener('click', ()=>{
+      if(game.over || game.turn!=='player') return;
+      resolveAction(game.me, game.ai, 'special', 'player');
+      nextTurn();
+    });
+
+    setInterval(()=> { if(!game.over) updateButtons(); }, 500);
+
+    // ====== START HELPERS ======
+    // Ensure sprites are computed for thumbnails first render
+    window.addEventListener('load', ()=>{
+      renderRoster(); renderCities();
+    });
+  </script>
+  <script>
+function goBack() {
+  window.location.href = "https://tealdragons78.github.io/Imperial-Arcade/";
+}
+</script>
+
+</body>
+</html>
