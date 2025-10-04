@@ -19,6 +19,25 @@
   box-shadow: 0 3px 6px rgba(0,0,0,0.3);
   transition: transform 0.15s ease;
 }
+    .Career {
+  font-family: 'Cinzel', serif;   /* optional: Roman-style font */
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;                    /* text color */
+  background: linear-gradient(180deg, #d4af37, #b78c2c); /* gold gradient */
+  border: 2px solid #8b6f2f;      /* darker gold border */
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+  transition: transform 0.15s ease;
+}
+
+.Career:hover {
+  transform: scale(1.05);
+  background: linear-gradient(180deg, #e6c46d, #cfa34d);
+}
 
 .back-btn:hover {
   transform: scale(1.05);
@@ -270,6 +289,7 @@ width: 128px;
     <p>This is where you will fight to the death. Should you emerge victorious, or shall death as a gladiator be your end? It is all in your hands...</p>
     <div id="ticker" class="ticker"></div>
     <button class="back-btn" onclick="goBack()">⬅ Back</button>
+    <button class="Career" onclick="Career()">⬅ Make your own Galdiator</button>
   </header>
 
   <div class="container">
@@ -1129,6 +1149,11 @@ function goBack() {
   window.location.href = "https://tealdragons78.github.io/Imperial-Arcade/";
 }
 </script>
-
+  <script>
+function Career() {
+  window.location.href = "https://tealdragons78.github.io/gladius-arena/";
+}
+</script>
 </body>
 </html>
+
